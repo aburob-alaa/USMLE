@@ -9,6 +9,20 @@ export default function StudyCalendar({ plan, history }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Calculate recommended exam date with proper study + review phases
+  const newQuestionsRemaining = remaining;
+  const daysToFinishNew = newQuestionsRemaining > 0 ? Math.ceil(newQuestionsRemaining / plan.dailyQuestions) : 0;
+
+  const totalWrong = Math.ceil((plan.totalQuestions * plan.wrongRate) / 100);
+  const reviewDailyRate = plan.dailyQuestions * 0.8;
+  const daysToFinishReview = totalWrong > 0 ? Math.ceil(totalWrong / reviewDailyRate) : 0;
+  const finalReviewDays = plan.finalReview;
+
+  const totalDaysNeeded = daysToFinishNew + daysToFinishReview + finalReviewDays;
+  const recommendedFinishDate = new Date(today);
+  recommendedFinishDate.setDate(recommendedFinishDate.getDate() + totalDaysNeeded);
+  const recommendedExamDate = new Date(recommendedFinishDate);
+
   const travelStart = new Date('2026-10-23');
   const travelEnd = new Date('2026-10-29');
 
@@ -26,16 +40,43 @@ export default function StudyCalendar({ plan, history }) {
   const isFinalReview = (date) => date >= finalReviewStart && date < examDate;
   const isReviewPhase = (date) => date >= reviewStart && date < finalReviewStart;
 
-  // Calculate remaining questions for each day
+  // Calculate remaining questions for each day with proper study + review phases
   const getQuestionsRemaining = (date) => {
-    if (date < today) {
-      const daysPassed = Math.floor((date - today) / (1000 * 60 * 60 * 24));
-      return Math.max(0, totalCompleted + (daysPassed * plan.dailyQuestions));
+    const newQuestionsRemaining = remaining;
+    const totalWrong = Math.ceil((plan.totalQuestions * plan.wrongRate) / 100);
+
+    // Calculate when study phase ends
+    const daysToStudyAll = Math.ceil(newQuestionsRemaining / plan.dailyQuestions);
+    const studyPhaseEndDate = new Date(today);
+    studyPhaseEndDate.setDate(studyPhaseEndDate.getDate() + daysToStudyAll);
+
+    // Calculate when review phase ends (before final review)
+    const reviewDailyRate = plan.dailyQuestions * 0.8;
+    const daysToReviewAll = Math.ceil(totalWrong / reviewDailyRate);
+    const reviewPhaseEndDate = new Date(studyPhaseEndDate);
+    reviewPhaseEndDate.setDate(reviewPhaseEndDate.getDate() + daysToReviewAll);
+
+    // Count non-travel days from today to target date
+    let progressDays = 0;
+    let currentDay = new Date(today);
+    while (currentDay < date && progressDays < 999) {
+      if (!isTravelWeek(currentDay)) {
+        progressDays++;
+      }
+      currentDay.setDate(currentDay.getDate() + 1);
     }
 
-    const daysFromNow = Math.floor((date - today) / (1000 * 60 * 60 * 24));
-    const projected = totalCompleted + (daysFromNow * plan.dailyQuestions);
-    return Math.max(0, plan.totalQuestions - projected);
+    if (date < today) return totalCompleted;
+
+    // Study phase: decrease by daily goal each day
+    if (date < studyPhaseEndDate) {
+      return Math.max(0, newQuestionsRemaining - (progressDays * plan.dailyQuestions));
+    }
+
+    // Review phase: study phase done, now add wrong questions and decrease
+    const reviewProgressDays = progressDays - daysToStudyAll;
+    const wrongQuestionsRemaining = totalWrong - (reviewProgressDays * plan.dailyQuestions);
+    return Math.max(0, wrongQuestionsRemaining);
   };
 
   const weeks = [];
@@ -98,11 +139,14 @@ export default function StudyCalendar({ plan, history }) {
               const status = getCellStatus(date);
               const qRemaining = getQuestionsRemaining(date);
               const isExamDay = date.getTime() === examDate.getTime();
+              const isRecommendedDay = date.getTime() === recommendedExamDate.getTime();
 
               return (
                 <div
                   key={dayIdx}
                   className={`calendar-day calendar-${status}`}
+                  style={isRecommendedDay ? { borderWidth: '3px', borderStyle: 'dashed' } : {}}
+                  title={isRecommendedDay ? 'Recommended exam date' : ''}
                 >
                   <div className="day-header">
                     {getDayLabel(date)}
@@ -135,6 +179,20 @@ export default function StudyCalendar({ plan, history }) {
         ))}
       </div>
 
+        <div style={{ marginBottom: '16px', fontSize: '12px', color: '#666' }}>
+          <div style={{ marginBottom: '8px' }}>
+            📅 <strong>Scheduled exam:</strong> {formatDate(examDate)}
+          </div>
+          <div>
+            🎯 <strong>Recommended exam:</strong> {formatDate(recommendedExamDate)}
+            {Math.abs(examDate - recommendedExamDate) > 86400000 && (
+              <span style={{ color: examDate < recommendedExamDate ? '#c62828' : '#2e7d32', fontWeight: '600' }}>
+                {' '}({examDate < recommendedExamDate ? 'Earlier than recommended' : 'Later than recommended'})
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className="calendar-legend">
           <div className="legend-item">
             <div className="legend-color past"></div>
@@ -155,6 +213,10 @@ export default function StudyCalendar({ plan, history }) {
           <div className="legend-item">
             <div className="legend-color travel"></div>
             <span>Rest (Travel)</span>
+          </div>
+          <div className="legend-item">
+            <div style={{ width: '16px', height: '16px', border: '3px dashed #d67c3b', borderRadius: '3px' }}></div>
+            <span>Recommended Exam</span>
           </div>
         </div>
       </div>

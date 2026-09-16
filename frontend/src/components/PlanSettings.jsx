@@ -54,11 +54,11 @@ export default function PlanSettings({ plan, onUpdate }) {
           <div className="form-group">
             <label className="label">Total Question Bank Size</label>
             <input
-              type="number"
-              min="1"
-              value={plan.totalQuestions}
+              type="text"
+              value={plan.totalQuestions || ''}
               onChange={(e) => handleChange('totalQuestions', e.target.value)}
               style={{ width: '100%' }}
+              placeholder="Enter number"
             />
           </div>
 

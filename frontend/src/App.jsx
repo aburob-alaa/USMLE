@@ -8,6 +8,7 @@ import Timeline from './components/Timeline';
 import DailyAdvice from './components/DailyAdvice';
 import MotivationalHospital from './components/MotivationalHospital';
 import StudyCalendar from './components/StudyCalendar';
+import CurrentRecommendation from './components/CurrentRecommendation';
 
 const DEFAULT_PLAN = {
   examDate: '2026-11-08',
@@ -174,6 +175,7 @@ export default function App() {
         <DailyAdvice plan={plan} history={history} />
         <MotivationalHospital />
         <ExamSummary plan={plan} history={history} />
+        <CurrentRecommendation plan={plan} history={history} />
         <StudyCalendar plan={plan} history={history} />
         <TodaySession plan={plan} history={history} onUpdate={updateHistory} />
         <DailyLogHistory history={history} onUpdate={updateHistory} />
