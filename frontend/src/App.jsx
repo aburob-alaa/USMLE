@@ -22,6 +22,7 @@ const DEFAULT_PLAN = {
 const DEFAULT_HISTORY = {};
 
 export default function App() {
+  const apiUrl = import.meta.env.VITE_API_URL || '';
   const [plan, setPlan] = useState(DEFAULT_PLAN);
   const [history, setHistory] = useState(DEFAULT_HISTORY);
   const [isShared, setIsShared] = useState(false);
@@ -59,7 +60,7 @@ export default function App() {
   const loadSharedPlanner = async (token) => {
     setSyncStatus('loading');
     try {
-      const res = await fetch(`/api/planners/${token}`);
+      const res = await fetch(`${apiUrl}/api/planners/${token}`);
       if (!res.ok) throw new Error('Failed to load shared planner');
       const { data } = await res.json();
       setPlan(data.plan);
@@ -86,7 +87,7 @@ export default function App() {
 
     setSyncStatus('saving');
     try {
-      const res = await fetch(`/api/planners/${shareToken}`, {
+      const res = await fetch(`${apiUrl}/api/planners/${shareToken}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -105,7 +106,7 @@ export default function App() {
   const syncFromServer = async () => {
     if (!isShared || !shareToken) return;
     try {
-      const res = await fetch(`/api/planners/${shareToken}`);
+      const res = await fetch(`${apiUrl}/api/planners/${shareToken}`);
       if (!res.ok) return;
       const { data, updatedAt } = await res.json();
       if (new Date(updatedAt).getTime() > lastSync) {
@@ -138,7 +139,7 @@ export default function App() {
   const handleShare = async () => {
     setSyncStatus('saving');
     try {
-      const res = await fetch('/api/planners', {
+      const res = await fetch(`${apiUrl}/api/planners`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: { plan, history } }),
