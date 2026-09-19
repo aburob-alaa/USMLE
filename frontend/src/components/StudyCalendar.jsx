@@ -169,7 +169,16 @@ export default function StudyCalendar({ plan, history }) {
                   ) : status === 'final-review' ? (
                     <div className="day-content review">📖 Practice</div>
                   ) : status === 'review' ? (
-                    <div className="day-content review">🔄 Review</div>
+                    <div className="day-content review">
+                      {qRemaining > 0 ? (
+                        <>
+                          <div className="remaining">{Math.round(qRemaining)}</div>
+                          <div className="remaining-label">review</div>
+                        </>
+                      ) : (
+                        <div className="remaining">✓</div>
+                      )}
+                    </div>
                   ) : (
                     <div className="day-content">
                       {qRemaining > 0 ? (
