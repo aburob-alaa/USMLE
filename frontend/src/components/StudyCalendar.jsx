@@ -30,11 +30,25 @@ export default function StudyCalendar({ plan, history }) {
   const reviewDailyTarget = plan.dailyQuestions * 0.8;
   const reviewDays = Math.ceil(wrongQuestions / reviewDailyTarget);
 
-  const reviewStart = new Date(examDate);
-  reviewStart.setDate(reviewStart.getDate() - plan.finalReview - reviewDays);
+  // Calculate study phase end date (counting non-travel days)
+  let studyPhaseEndDate = new Date(today);
+  let studyDaysCount = 0;
+  while (studyDaysCount < daysToFinishNew) {
+    if (!isTravelWeek(studyPhaseEndDate)) {
+      studyDaysCount++;
+    }
+    if (studyDaysCount < daysToFinishNew) {
+      studyPhaseEndDate.setDate(studyPhaseEndDate.getDate() + 1);
+    }
+  }
 
-  const finalReviewStart = new Date(examDate);
-  finalReviewStart.setDate(finalReviewStart.getDate() - plan.finalReview);
+  // Review starts after study phase ends
+  const reviewStart = new Date(studyPhaseEndDate);
+  reviewStart.setDate(reviewStart.getDate() + 1);
+
+  // Final review starts after review phase ends
+  const finalReviewStart = new Date(reviewStart);
+  finalReviewStart.setDate(finalReviewStart.getDate() + reviewDays);
 
   const isTravelWeek = (date) => date >= travelStart && date <= travelEnd;
   const isFinalReview = (date) => date >= finalReviewStart && date < examDate;
