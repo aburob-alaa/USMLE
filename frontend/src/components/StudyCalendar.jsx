@@ -28,7 +28,13 @@ export default function StudyCalendar({ plan, history }) {
 
   const isTravelWeek = (date) => date >= travelStart && date <= travelEnd;
 
-  const wrongQuestions = Math.ceil((plan.totalQuestions * plan.wrongRate) / 100);
+  // Calculate cascading review (each wrong batch has 40% wrong again, etc.)
+  const firstBatchWrong = (plan.totalQuestions * plan.wrongRate) / 100;
+  const wrongRate = plan.wrongRate / 100;
+  const totalWrongToReview = wrongRate > 0 && wrongRate < 1
+    ? firstBatchWrong / (1 - wrongRate)
+    : firstBatchWrong;
+  const wrongQuestions = Math.ceil(totalWrongToReview);
   const reviewDailyTarget = plan.dailyQuestions * 0.8;
   const reviewDays = Math.ceil(wrongQuestions / reviewDailyTarget);
 
@@ -58,7 +64,9 @@ export default function StudyCalendar({ plan, history }) {
   // Calculate remaining questions for each day with proper study + review phases
   const getQuestionsRemaining = (date) => {
     const newQuestionsRemaining = remaining;
-    const totalWrong = Math.ceil((plan.totalQuestions * plan.wrongRate) / 100);
+    const wr = plan.wrongRate / 100;
+    const firstBatch = (plan.totalQuestions * plan.wrongRate) / 100;
+    const totalWrong = wr > 0 && wr < 1 ? Math.ceil(firstBatch / (1 - wr)) : Math.ceil(firstBatch);
 
     // Calculate when study phase ends
     const daysToStudyAll = Math.ceil(newQuestionsRemaining / plan.dailyQuestions);

@@ -15,8 +15,13 @@ export default function CurrentRecommendation({ plan, history }) {
   // Calculate days to finish studying new questions
   const daysToFinishNew = newQuestionsRemaining > 0 ? Math.ceil(newQuestionsRemaining / (plan.dailyQuestions || 1)) : 0;
 
-  // Calculate accumulated wrong questions
-  const totalWrong = Math.ceil(((plan.totalQuestions || 0) * (plan.wrongRate || 40)) / 100);
+  // Calculate accumulated wrong questions (including cascading reviews)
+  const wrongRatePercent = (plan.wrongRate || 40);
+  const firstBatch = ((plan.totalQuestions || 0) * wrongRatePercent) / 100;
+  const wr = wrongRatePercent / 100;
+  const totalWrong = wr > 0 && wr < 1
+    ? Math.ceil(firstBatch / (1 - wr))
+    : Math.ceil(firstBatch);
   const reviewDailyRate = (plan.dailyQuestions || 80) * 0.8;
   const daysToFinishReview = totalWrong > 0 ? Math.ceil(totalWrong / reviewDailyRate) : 0;
   const finalReviewDays = plan.finalReview || 7;
