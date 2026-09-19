@@ -17,7 +17,7 @@ export default function CurrentRecommendation({ plan, history }) {
 
   // Calculate review questions: 40% of total question bank
   const totalWrong = Math.ceil(((plan.totalQuestions || 0) * (plan.wrongRate || 40)) / 100);
-  const reviewDailyRate = (plan.dailyQuestions || 80) * 0.8;
+  const reviewDailyRate = (plan.dailyQuestions || 80);
   const daysToFinishReview = totalWrong > 0 ? Math.ceil(totalWrong / reviewDailyRate) : 0;
   const finalReviewDays = plan.finalReview || 7;
 

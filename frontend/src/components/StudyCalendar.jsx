@@ -30,7 +30,7 @@ export default function StudyCalendar({ plan, history }) {
 
   // Calculate review questions: 40% of total question bank
   const wrongQuestions = Math.ceil((plan.totalQuestions * plan.wrongRate) / 100);
-  const reviewDailyTarget = plan.dailyQuestions * 0.8;
+  const reviewDailyTarget = plan.dailyQuestions;
   const reviewDays = Math.ceil(wrongQuestions / reviewDailyTarget);
 
   // Calculate study phase end date (counting non-travel days)
@@ -59,20 +59,12 @@ export default function StudyCalendar({ plan, history }) {
   // Calculate remaining questions for each day with proper study + review phases
   const getQuestionsRemaining = (date) => {
     const newQuestionsRemaining = remaining;
-    const wr = plan.wrongRate / 100;
-    const firstBatch = (plan.totalQuestions * plan.wrongRate) / 100;
-    const totalWrong = wr > 0 && wr < 1 ? Math.ceil(firstBatch / (1 - wr)) : Math.ceil(firstBatch);
+    const totalWrong = Math.ceil((plan.totalQuestions * plan.wrongRate) / 100);
 
     // Calculate when study phase ends
     const daysToStudyAll = Math.ceil(newQuestionsRemaining / plan.dailyQuestions);
     const studyPhaseEndDate = new Date(today);
     studyPhaseEndDate.setDate(studyPhaseEndDate.getDate() + daysToStudyAll);
-
-    // Calculate when review phase ends (before final review)
-    const reviewDailyRate = plan.dailyQuestions * 0.8;
-    const daysToReviewAll = Math.ceil(totalWrong / reviewDailyRate);
-    const reviewPhaseEndDate = new Date(studyPhaseEndDate);
-    reviewPhaseEndDate.setDate(reviewPhaseEndDate.getDate() + daysToReviewAll);
 
     // Count non-travel days from today to target date
     let progressDays = 0;
@@ -91,7 +83,7 @@ export default function StudyCalendar({ plan, history }) {
       return Math.max(0, newQuestionsRemaining - (progressDays * plan.dailyQuestions));
     }
 
-    // Review phase: study phase done, now add wrong questions and decrease
+    // Review phase: study phase done, now decrease wrong questions by daily goal
     const reviewProgressDays = progressDays - daysToStudyAll;
     const wrongQuestionsRemaining = totalWrong - (reviewProgressDays * plan.dailyQuestions);
     return Math.max(0, wrongQuestionsRemaining);
