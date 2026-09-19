@@ -26,6 +26,8 @@ export default function StudyCalendar({ plan, history }) {
   const travelStart = new Date('2026-10-23');
   const travelEnd = new Date('2026-10-29');
 
+  const isTravelWeek = (date) => date >= travelStart && date <= travelEnd;
+
   const wrongQuestions = Math.ceil((plan.totalQuestions * plan.wrongRate) / 100);
   const reviewDailyTarget = plan.dailyQuestions * 0.8;
   const reviewDays = Math.ceil(wrongQuestions / reviewDailyTarget);
@@ -50,7 +52,6 @@ export default function StudyCalendar({ plan, history }) {
   const finalReviewStart = new Date(reviewStart);
   finalReviewStart.setDate(finalReviewStart.getDate() + reviewDays);
 
-  const isTravelWeek = (date) => date >= travelStart && date <= travelEnd;
   const isFinalReview = (date) => date >= finalReviewStart && date < examDate;
   const isReviewPhase = (date) => date >= reviewStart && date < finalReviewStart;
 
