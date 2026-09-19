@@ -28,13 +28,8 @@ export default function StudyCalendar({ plan, history }) {
 
   const isTravelWeek = (date) => date >= travelStart && date <= travelEnd;
 
-  // Calculate cascading review (each wrong batch has 40% wrong again, etc.)
-  const firstBatchWrong = (plan.totalQuestions * plan.wrongRate) / 100;
-  const wrongRate = plan.wrongRate / 100;
-  const totalWrongToReview = wrongRate > 0 && wrongRate < 1
-    ? firstBatchWrong / (1 - wrongRate)
-    : firstBatchWrong;
-  const wrongQuestions = Math.ceil(totalWrongToReview);
+  // Calculate review questions: 40% of total question bank
+  const wrongQuestions = Math.ceil((plan.totalQuestions * plan.wrongRate) / 100);
   const reviewDailyTarget = plan.dailyQuestions * 0.8;
   const reviewDays = Math.ceil(wrongQuestions / reviewDailyTarget);
 
